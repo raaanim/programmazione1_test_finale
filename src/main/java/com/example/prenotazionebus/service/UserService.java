@@ -61,7 +61,7 @@ public class UserService {
         return null;
     }
 
-    public AuthResponse reAuth( String refreshToken) throws Exception {
+    public AuthResponse reAuth(String refreshToken) throws Exception {
         AuthResponse authResponse = new AuthResponse();
         try {
             Claims claims = Jwts.parser()
@@ -121,12 +121,38 @@ public class UserService {
         return userRepository.save(user);
     }
 
-
+    // questo metodo crea una eccezione se non trova l'utente via email
     public User getUserByEmail(String email) {
         return Optional.ofNullable(repository.findByEmail(email))
                 .orElseThrow(() -> new UserNotFoundException("Utente non trovato con email: " + email));
     }
 
 
+    public void addCreditByEmail(String email, BigDecimal amount) {
+        // Trova utente
+        User user = repository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        // Validazione importo
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be positive. Received: " + amount);
+        }
+
+        // Validazione limite massimo (opzionale, per sicurezza)
+        if (amount.compareTo(new BigDecimal("10000")) > 0) {
+            throw new IllegalArgumentException("Amount too large. Maximum: 10000");
+        }
+
+        // Aggiungi credito
+        BigDecimal oldCredit = user.getCredit();
+        BigDecimal newCredit = oldCredit.add(amount);
+        user.setCredit(newCredit);
+        repository.save(user);
+
+        System.out.println("DEBUG: Credit updated for user ID " + user.getId() +
+                " from " + oldCredit + " to " + newCredit);
+    }
 }
 

@@ -5,6 +5,7 @@ import com.example.prenotazionebus.entity.Trip;
 import com.example.prenotazionebus.service.TripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,9 +32,14 @@ public class TripController {
     // POST /trips/{tripId}/buy?userId=...
     @PostMapping("/{tripId}/buy")
     public ResponseEntity<String> buyTrip(@PathVariable Integer tripId,
-                                          @RequestParam Integer userId) {
+                                          Authentication authentication) {
         try {
-            String receipt = tripService.buyTrip(userId, tripId);
+            // Estrai email dell'utente autenticato dal token JWT
+            String email = authentication.getName();
+
+            // Chiama un nuovo metodo del service che prende email invece di userId
+            String receipt = tripService.buyTripByEmail(email, tripId);
+
             return ResponseEntity.ok(receipt);
         } catch (RuntimeException e) {
             return ResponseEntity.status(422).body(e.getMessage());

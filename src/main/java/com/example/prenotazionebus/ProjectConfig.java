@@ -40,10 +40,12 @@ public class ProjectConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v2/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/users/register", "/users/login", "/users/re-auth/**", "trips/trips").permitAll()
+
                         .requestMatchers("/users/all").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users/{id}").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/trips/trips").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/users/*").hasAuthority("ADMIN")
+                        // Tutto il resto richiede autenticazione
                         .anyRequest().authenticated()
                 );
 
